@@ -38,7 +38,6 @@ function renderGrid() {
     <div class="kanji-card ${k.level}" data-idx="${i}" role="button" tabindex="0"
          aria-label="${k.kanji}: ${k.meanings[0]}">
       <span class="kchar">${k.kanji}</span>
-      <span class="kmean">${k.meanings[0]}</span>
       <span class="level-badge ${k.level}">${k.level}</span>
     </div>
   `).join('');
@@ -84,22 +83,19 @@ function renderDetail() {
     const k = KANJI[state.detailIdx];
     if (!k) return;
 
-    document.getElementById('detail-kchar').textContent = k.kanji;
-    document.getElementById('detail-meanings').textContent = k.meanings.join(', ');
     document.getElementById('detail-level-badge').innerHTML =
         `<span class="level-badge ${k.level}" style="position:static;display:inline-block;">${k.level}</span>`;
 
     document.getElementById('detail-onyomi').innerHTML = k.onyomi.length
         ? k.onyomi.map(r => `<span class="chip chip-on">${r}</span>`).join('')
-        : '<em style="color:#aaa;font-size:.85rem;">None</em>';
+        : '';
 
     document.getElementById('detail-kunyomi').innerHTML = k.kunyomi.length
         ? k.kunyomi.map(r => `<span class="chip chip-kun">${r}</span>`).join('')
-        : '<em style="color:#aaa;font-size:.85rem;">None</em>';
+        : '';
 
-    document.getElementById('detail-examples').innerHTML = k.examples.length
-        ? k.examples.map(ex => `<li>${ex}</li>`).join('')
-        : '<li style="color:#aaa">No examples listed.</li>';
+    document.getElementById('detail-examples').innerHTML =
+        k.examples.map(ex => `<li>${ex}</li>`).join('');
 
     document.getElementById('detail-prev').disabled = state.detailIdx === 0;
     document.getElementById('detail-next').disabled = state.detailIdx >= KANJI.length - 1;
@@ -123,10 +119,11 @@ function initStrokeOrder(kanji) {
     const target = document.getElementById('hanzi-target');
     target.innerHTML = '';
     state.strokePaths = [];
+    state.strokeNums = [];
     state.currentStroke = 0;
     state.totalStrokes = 0;
     document.getElementById('stroke-step-row').innerHTML = '';
-    document.getElementById('stroke-info').textContent = 'Loading…';
+    document.getElementById('stroke-info').textContent = '…';
     setStrokeBtnsEnabled(false);
 
     const cp = kanji.codePointAt(0).toString(16).padStart(5, '0');
@@ -134,8 +131,7 @@ function initStrokeOrder(kanji) {
         .then(r => { if (!r.ok) throw new Error(); return r.text(); })
         .then(svgText => buildStrokeOrderSVG(svgText))
         .catch(() => {
-            document.getElementById('stroke-info').textContent =
-                'Stroke data unavailable for this kanji. (Needs internet)';
+            document.getElementById('stroke-info').textContent = '×';
         });
 }
 
@@ -144,7 +140,7 @@ function buildStrokeOrderSVG(svgText) {
     const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
     const strokeGroup = doc.querySelector('g[id^="kvg:StrokePaths"]');
     if (!strokeGroup) {
-        document.getElementById('stroke-info').textContent = 'Stroke data error.';
+        document.getElementById('stroke-info').textContent = '×';
         return;
     }
 
@@ -192,9 +188,42 @@ function buildStrokeOrderSVG(svgText) {
     svg.appendChild(revealedG);
     target.appendChild(svg);
 
+    // ── Stroke order numbers overlay (hidden until stroke drawn) ───
+    const numGroup = doc.querySelector('g[id^="kvg:StrokeNumbers"]');
+    const numSvg = document.getElementById('detail-stroke-numbers');
+    numSvg.innerHTML = '';
+    state.strokeNums = [];
+    if (numGroup) {
+        numSvg.setAttribute('viewBox', '0 0 109 109');
+        Array.from(numGroup.querySelectorAll('text')).forEach(t => {
+            const m = (t.getAttribute('transform') || '')
+                .match(/matrix\(1 0 0 1 ([\d.]+) ([\d.]+)\)/);
+            if (!m) { state.strokeNums.push(null); return; }
+            const cx = parseFloat(m[1]).toFixed(1);
+            const cy = parseFloat(m[2]).toFixed(1);
+            const n = t.textContent.trim();
+            const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            el.setAttribute('x', cx);
+            el.setAttribute('y', cy);
+            el.setAttribute('text-anchor', 'middle');
+            el.setAttribute('dominant-baseline', 'central');
+            el.setAttribute('font-size', '7');
+            el.setAttribute('font-weight', '800');
+            el.setAttribute('fill', '#c0392b');
+            el.setAttribute('paint-order', 'stroke');
+            el.setAttribute('stroke', 'white');
+            el.setAttribute('stroke-width', '2');
+            el.setAttribute('stroke-linejoin', 'round');
+            el.setAttribute('font-family', "'Segoe UI',Arial,sans-serif");
+            el.style.display = 'none';
+            el.textContent = n;
+            numSvg.appendChild(el);
+            state.strokeNums.push(el);
+        });
+    }
+
     buildStepButtons();
-    document.getElementById('stroke-info').textContent =
-        `${state.totalStrokes} stroke${state.totalStrokes !== 1 ? 's' : ''}`;
+    document.getElementById('stroke-info').textContent = `${state.totalStrokes}画`;
     setStrokeBtnsEnabled(true);
 }
 
@@ -219,11 +248,12 @@ function revealStrokesUpTo(n) {
         p.style.strokeDashoffset = '';
         p.style.display = i < n ? '' : 'none';
     });
+    state.strokeNums.forEach((el, i) => { if (el) el.style.display = i < n ? '' : 'none'; });
     state.currentStroke = n;
     updateStepBtns(n);
     document.getElementById('stroke-info').textContent = n === 0
-        ? `${state.totalStrokes} stroke${state.totalStrokes !== 1 ? 's' : ''}`
-        : `Stroke ${n} / ${state.totalStrokes}`;
+        ? `${state.totalStrokes}画`
+        : `${n} / ${state.totalStrokes}`;
 }
 
 function highlightStrokeStep(n) { updateStepBtns(n); }
@@ -239,7 +269,7 @@ function updateStepBtns(n) {
 
 function soAnimateFrom(i) {
     if (i >= state.totalStrokes) {
-        document.getElementById('stroke-info').textContent = '✓ Done!';
+        document.getElementById('stroke-info').textContent = '✓';
         return;
     }
     const path = state.strokePaths[i];
@@ -253,6 +283,7 @@ function soAnimateFrom(i) {
     path.style.transition = `stroke-dashoffset ${dur}ms ease`;
     path.style.strokeDashoffset = '0';
     state.currentStroke = i + 1;
+    if (state.strokeNums[i]) state.strokeNums[i].style.display = '';
     updateStepBtns(i + 1);
     document.getElementById('stroke-info').textContent = `Stroke ${i + 1} / ${state.totalStrokes}`;
     state._animTimer = setTimeout(() => soAnimateFrom(i + 1), dur + 300);
@@ -310,7 +341,7 @@ document.addEventListener('keydown', e => {
 
     function applyStyle() {
         ctx.strokeStyle = '#1a1a2e';
-        ctx.lineWidth = Math.max(3, canvas.offsetWidth * 0.013);
+        ctx.lineWidth = Math.max(10, canvas.offsetWidth * 0.042);
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
     }
@@ -396,7 +427,6 @@ function renderWriteMode() {
     const k = state.writeList[state.writeIdx];
     if (!k) return;
     document.getElementById('write-kchar').textContent = k.kanji;
-    document.getElementById('write-meaning').textContent = k.meanings[0];
     document.getElementById('write-prev').disabled = state.writeIdx === 0;
     document.getElementById('write-next').disabled = state.writeIdx >= state.writeList.length - 1;
     clearWriteCanvas();
@@ -444,7 +474,7 @@ function renderKanjiVGGuide(svgText, size) {
 
     if (strokeGroup) {
         const g = strokeGroup.cloneNode(true);
-        g.setAttribute('style', 'fill:none;stroke:#2c3e50;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;');
+        g.setAttribute('style', 'fill:none;stroke:#2c3e50;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;');
         guideSvg.appendChild(g);
     }
     target.appendChild(guideSvg);
@@ -456,7 +486,7 @@ function renderKanjiVGGuide(svgText, size) {
     if (!numGroup) return;
 
     const scale = size / 109;
-    const r = Math.max(11, size * 0.033);
+    const r = Math.max(7, size * 0.020);
     const fs = Math.round(r * 0.82);
 
     numSvg.setAttribute('viewBox', `0 0 ${size} ${size}`);
@@ -467,9 +497,9 @@ function renderKanjiVGGuide(svgText, size) {
         const cx = (parseFloat(m[1]) * scale).toFixed(1);
         const cy = (parseFloat(m[2]) * scale).toFixed(1);
         const n = t.textContent.trim();
-        return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#e84040" fill-opacity="0.9"/>` +
-            `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" ` +
-            `font-size="${fs}" font-weight="700" fill="white" ` +
+        return `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" ` +
+            `font-size="${fs}" font-weight="800" fill="#c0392b" ` +
+            `paint-order="stroke" stroke="white" stroke-width="3" stroke-linejoin="round" ` +
             `font-family="'Segoe UI',Arial,sans-serif">${n}</text>`;
     }).join('');
 }
@@ -482,7 +512,6 @@ document.getElementById('write-prev').addEventListener('click', () => {
 document.getElementById('write-next').addEventListener('click', () => {
     if (state.writeIdx < state.writeList.length - 1) { state.writeIdx++; renderWriteMode(); }
 });
-document.getElementById('detail-write-btn').addEventListener('click', openWriteMode);
 
 window.addEventListener('resize', () => {
     if (!document.getElementById('write-panel').classList.contains('open')) return;

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>漢字 Practice</title>
+    <title>漢字</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,7 +18,7 @@
     <!-- Header -->
     <header>
         <span class="logo-kanji">漢</span>
-        <h1>Kanji Practice</h1>
+        <h1>漢字</h1>
     </header>
 
     <!-- Kanji Grid -->
@@ -31,47 +31,42 @@
         <div class="detail-box">
             <button class="detail-close" id="detail-close" aria-label="Close">✕</button>
 
-            <div class="detail-kanji-header">
-                <div class="detail-kchar" id="detail-kchar"></div>
-                <div class="detail-meta">
-                    <h3 id="detail-meanings"></h3>
-                    <div id="detail-level-badge"></div>
-                </div>
-            </div>
-
             <div id="kjanidiv">
                 <div id="stroke-order-container">
                     <div id="hanzi-target"></div>
+                    <svg id="detail-stroke-numbers" xmlns="http://www.w3.org/2000/svg"></svg>
                 </div>
                 <div class="stroke-controls">
-                    <button id="anim-play">▶ Play</button>
-                    <button id="anim-step">Step →</button>
-                    <button id="anim-reset">↺ Reset</button>
-                    <button id="anim-quiz">✏ Write</button>
+                    <button id="anim-play">▶</button>
+                    <button id="anim-step">→</button>
+                    <button id="anim-reset">↺</button>
+                    <button id="anim-quiz">✍️</button>
                 </div>
                 <div class="stroke-info" id="stroke-info">Loading…</div>
                 <div class="stroke-step-row" id="stroke-step-row"></div>
             </div>
 
             <div class="detail-section">
-                <h4>音読み (On'yomi)</h4>
+                <h4>音読み</h4>
                 <div class="reading-chips" id="detail-onyomi"></div>
             </div>
 
             <div class="detail-section">
-                <h4>訓読み (Kun'yomi)</h4>
+                <div class="detail-section-row">
+                    <h4>訓読み</h4>
+                    <div id="detail-level-badge"></div>
+                </div>
                 <div class="reading-chips" id="detail-kunyomi"></div>
             </div>
 
             <div class="detail-section">
-                <h4>Example Words</h4>
+                <h4>例文</h4>
                 <ul class="example-list" id="detail-examples"></ul>
             </div>
 
             <div class="detail-actions">
-                <button id="detail-write-btn">✎ Practice Writing</button>
-                <button id="detail-prev">← Prev</button>
-                <button id="detail-next">Next →</button>
+                <button id="detail-prev">←</button>
+                <button id="detail-next">→</button>
             </div>
         </div>
     </div>
@@ -81,7 +76,6 @@
         <button class="write-btn-close" id="write-close" aria-label="Close">✕</button>
         <div class="write-header">
             <span class="write-kchar" id="write-kchar"></span>
-            <span class="write-meaning" id="write-meaning"></span>
         </div>
         <div class="write-canvas-wrap" id="write-canvas-wrap">
             <div id="write-hanzi-target"></div>
@@ -89,9 +83,9 @@
             <canvas id="write-canvas"></canvas>
         </div>
         <div class="write-controls">
-            <button class="write-ctrl-btn" id="write-prev">← Prev</button>
-            <button class="write-ctrl-btn write-clear-btn" id="write-clear">✕ Clear</button>
-            <button class="write-ctrl-btn" id="write-next">Next →</button>
+            <button class="write-ctrl-btn" id="write-prev">←</button>
+            <button class="write-ctrl-btn write-clear-btn" id="write-clear">✕</button>
+            <button class="write-ctrl-btn" id="write-next">→</button>
         </div>
     </div>
 
