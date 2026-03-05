@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>漢字学習 – Kanji Learning (JLPT N5 &amp; N4)</title>
+  <meta name="description" content="Learn Japanese kanji with animated stroke order, readings, meanings and quizzes – JLPT N5 and N4." />
+
+  <!-- Google Fonts: Noto Serif JP for kanji rendering -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Hanzi-Writer: stroke-order animation library (also supports Japanese kanji via KanjiVG) -->
+  <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.2/dist/hanzi-writer.min.js"></script>
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<header>
+  <h1><span class="logo-kanji">漢</span> Kanji Study – N5 &amp; N4</h1>
+  <div class="header-stats" id="header-stats">Loading…</div>
+</header>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<nav id="main-nav">
+  <button class="active" data-tab="browse">Browse</button>
+  <button data-tab="quiz">Quiz</button>
+  <button data-tab="progress">Progress</button>
+</nav>
+
+<!-- ── Main Content ───────────────────────────────────────── -->
+<main>
+
+  <!-- ═══ BROWSE TAB ════════════════════════════════════════ -->
+  <section class="tab-panel active" id="tab-browse">
+    <div class="section-header">
+      <h2>Kanji Browser</h2>
+    </div>
+
+    <div class="controls">
+      <input type="text" id="search-input" placeholder="Search kanji, meaning, reading…" />
+      <div class="filter-group">
+        <button class="filter-btn active" data-level="All">All</button>
+        <button class="filter-btn" data-level="N5">N5</button>
+        <button class="filter-btn" data-level="N4">N4</button>
+        <button class="filter-btn" data-level="Learned">✓ Learned</button>
+      </div>
+    </div>
+
+    <div id="kanji-grid"></div>
+  </section>
+
+  <!-- ═══ QUIZ TAB ═══════════════════════════════════════════ -->
+  <section class="tab-panel" id="tab-quiz">
+
+    <!-- Setup Screen -->
+    <div id="quiz-setup">
+      <div class="quiz-setup">
+        <h3>Start a Quiz</h3>
+
+        <div class="option-group">
+          <label>Question type</label>
+          <div class="radio-group" id="q-type-group">
+            <label class="radio-option"><input type="radio" name="qtype" value="kanji-to-meaning" checked /> Kanji → Meaning</label>
+            <label class="radio-option"><input type="radio" name="qtype" value="meaning-to-kanji" /> Meaning → Kanji</label>
+            <label class="radio-option"><input type="radio" name="qtype" value="kanji-to-reading" /> Kanji → Reading</label>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <label>JLPT level</label>
+          <div class="radio-group" id="q-level-group">
+            <label class="radio-option"><input type="radio" name="qlevel" value="All" checked /> All (N5 + N4)</label>
+            <label class="radio-option"><input type="radio" name="qlevel" value="N5" /> N5 only</label>
+            <label class="radio-option"><input type="radio" name="qlevel" value="N4" /> N4 only</label>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <label>Number of questions</label>
+          <div class="radio-group" id="q-count-group">
+            <label class="radio-option"><input type="radio" name="qcount" value="10" checked /> 10</label>
+            <label class="radio-option"><input type="radio" name="qcount" value="20" /> 20</label>
+            <label class="radio-option"><input type="radio" name="qcount" value="40" /> 40</label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="start-quiz-btn" style="width:100%;margin-top:8px;">Start Quiz</button>
+      </div>
+    </div>
+
+    <!-- Active Quiz -->
+    <div id="quiz-active" style="display:none;">
+      <div class="quiz-progress-bar-wrap">
+        <div class="quiz-progress-bar" id="quiz-progress-bar" style="width:0%"></div>
+      </div>
+      <div class="quiz-score-row">
+        <span>Question <span id="q-current">1</span> / <span id="q-total">10</span></span>
+        <span class="score-correct">✓ <span id="score-correct">0</span></span>
+        <span class="score-wrong">✗ <span id="score-wrong">0</span></span>
+      </div>
+
+      <div class="quiz-question-card">
+        <div class="quiz-prompt-label" id="q-prompt-label"></div>
+        <div id="q-prompt"></div>
+        <div class="quiz-hint" id="q-hint"></div>
+      </div>
+
+      <div class="quiz-options" id="quiz-options"></div>
+
+      <div class="quiz-feedback" id="quiz-feedback"></div>
+
+      <div class="quiz-next-row" id="quiz-next-row" style="display:none;">
+        <button class="btn btn-primary" id="next-question-btn">Next →</button>
+      </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="quiz-result" style="display:none;">
+      <h2>Quiz Complete!</h2>
+      <div class="result-score" id="result-score"></div>
+      <div class="result-msg" id="result-msg"></div>
+      <button class="btn btn-primary" id="quiz-again-btn" style="margin-right:10px;">Try Again</button>
+      <button class="btn btn-outline" id="quiz-change-btn">Change Settings</button>
+    </div>
+
+  </section>
+
+  <!-- ═══ PROGRESS TAB ══════════════════════════════════════ -->
+  <section class="tab-panel" id="tab-progress">
+    <div class="section-header">
+      <h2>Your Progress</h2>
+      <button class="btn btn-outline" id="reset-progress-btn">Reset All</button>
+    </div>
+
+    <div class="progress-overview" id="progress-overview"></div>
+
+    <h3 style="margin-bottom:14px;color:var(--secondary);">Completion by Level</h3>
+    <div id="progress-bars"></div>
+
+    <h3 style="margin:24px 0 14px;color:var(--secondary);">Kanji Learned</h3>
+    <div id="learned-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;"></div>
+  </section>
+
+</main>
+
+<!-- ═══ KANJI DETAIL MODAL ════════════════════════════════════ -->
+<div id="detail-panel">
+  <div class="detail-box">
+    <button class="detail-close" id="detail-close" aria-label="Close">✕</button>
+
+    <div class="detail-kanji-header">
+      <div class="detail-kchar" id="detail-kchar"></div>
+      <div class="detail-meta">
+        <h3 id="detail-meanings"></h3>
+        <div class="readings" id="detail-level-badge"></div>
+      </div>
+    </div>
+
+    <!-- kjanidiv: stroke order animation block (same concept as kakijun.jp) -->
+    <div id="kjanidiv">
+      <div id="stroke-order-container">
+        <div id="hanzi-target"></div>
+      </div>
+      <div class="stroke-controls">
+        <button class="btn btn-primary"   id="anim-play">▶ Animate</button>
+        <button class="btn btn-secondary" id="anim-step">Step →</button>
+        <button class="btn btn-outline"   id="anim-reset">↺ Reset</button>
+        <button class="btn btn-accent"    id="anim-quiz">✏ Quiz</button>
+      </div>
+      <div class="stroke-info" id="stroke-info">Loading stroke data…</div>
+      <div class="stroke-step-row" id="stroke-step-row"></div>
+    </div>
+
+    <div class="detail-section">
+      <h4>On'yomi (音読み)</h4>
+      <div class="reading-chips" id="detail-onyomi"></div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Kun'yomi (訓読み)</h4>
+      <div class="reading-chips" id="detail-kunyomi"></div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Example Words</h4>
+      <ul class="example-list" id="detail-examples"></ul>
+    </div>
+
+    <div class="detail-actions">
+      <button class="btn btn-primary" id="detail-mark-learned">✓ Mark as Learned</button>
+      <button class="btn btn-outline" id="detail-prev">← Prev</button>
+      <button class="btn btn-outline" id="detail-next">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<!-- Data + App scripts -->
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
