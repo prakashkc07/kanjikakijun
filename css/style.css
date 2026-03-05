@@ -258,7 +258,7 @@ main {
     font-size: 1.3rem;
     font-weight: 800;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,.18);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .18);
     transition: transform .15s, box-shadow .15s;
     display: flex;
     align-items: center;
@@ -267,12 +267,12 @@ main {
 
 .stroke-controls button:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,.22);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .22);
 }
 
 .stroke-controls button:active {
     transform: scale(.92);
-    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
 }
 
 .stroke-controls button:disabled {
@@ -431,7 +431,7 @@ main {
     font-weight: 800;
     cursor: pointer;
     transition: transform .15s, box-shadow .15s;
-    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
 }
 
 #detail-prev {
@@ -447,7 +447,7 @@ main {
 #detail-prev:hover,
 #detail-next:hover {
     transform: translateY(-2px);
-    box-shadow: 0 7px 18px rgba(0,0,0,.2);
+    box-shadow: 0 7px 18px rgba(0, 0, 0, .2);
 }
 
 #detail-prev:active,
