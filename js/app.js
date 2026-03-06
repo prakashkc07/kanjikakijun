@@ -12,9 +12,6 @@ const state = {
     currentStroke: 0,
     totalStrokes: 0,
     // Write mode
-    writeList: [],
-    writeIdx: 0,
-    writeWriter: null,
     _writing: false,
     _wlx: 0,
     _wly: 0,
@@ -32,23 +29,43 @@ function toast(msg, duration = 2000) {
    KANJI GRID
 ══════════════════════════════════════════════════════════ */
 
-function renderGrid() {
+function renderGrid(filter = '') {
+    const q = filter.trim().toLowerCase();
+    const matches = q
+        ? KANJI.filter(k =>
+            k.kanji.includes(q) ||
+            k.meanings.some(m => m.toLowerCase().includes(q)) ||
+            k.onyomi.some(r => r.toLowerCase().includes(q)) ||
+            k.kunyomi.some(r => r.toLowerCase().includes(q))
+        )
+        : KANJI;
+
+    const countEl = document.getElementById('search-count');
+    countEl.textContent = q ? `${matches.length} / ${KANJI.length}` : `${KANJI.length}`;
+
     const grid = document.getElementById('kanji-grid');
-    grid.innerHTML = KANJI.map((k, i) => `
+    grid.innerHTML = matches.map((k) => {
+        const i = KANJI.indexOf(k);
+        return `
     <div class="kanji-card ${k.level}" data-idx="${i}" role="button" tabindex="0"
          aria-label="${k.kanji}: ${k.meanings[0]}">
       <span class="kchar">${k.kanji}</span>
       <span class="level-badge ${k.level}">${k.level}</span>
-    </div>
-  `).join('');
+    </div>`;
+    }).join('');
 
-    grid.querySelectorAll('.kanji-card').forEach((card, i) => {
+    grid.querySelectorAll('.kanji-card').forEach(card => {
+        const i = parseInt(card.dataset.idx);
         card.addEventListener('click', () => openDetail(i));
         card.addEventListener('keydown', e => {
             if (e.key === 'Enter' || e.key === ' ') openDetail(i);
         });
     });
 }
+
+document.getElementById('search-input').addEventListener('input', e => {
+    renderGrid(e.target.value);
+});
 
 /* ══════════════════════════════════════════════════════════
    ANIMATE MODAL
@@ -59,10 +76,12 @@ function openDetail(idx) {
     document.getElementById('detail-panel').classList.add('open');
     document.body.style.overflow = 'hidden';
     renderDetail();
+    requestAnimationFrame(() => requestAnimationFrame(resizeWriteCanvas));
 }
 
 function closeDetail() {
     soStopAnim();
+    clearWriteCanvas();
     document.getElementById('detail-panel').classList.remove('open');
     document.body.style.overflow = '';
 }
@@ -235,6 +254,7 @@ function buildStepButtons() {
 
     row.querySelectorAll('.stroke-step-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+            clearWriteCanvas();
             soStopAnim();
             revealStrokesUpTo(parseInt(btn.dataset.stroke));
         });
@@ -292,6 +312,7 @@ function soAnimateFrom(i) {
 /* Stroke control buttons */
 document.getElementById('anim-play').addEventListener('click', () => {
     if (!state.strokePaths.length) return;
+    clearWriteCanvas();
     soStopAnim();
     revealStrokesUpTo(0);
     soAnimateFrom(0);
@@ -310,14 +331,10 @@ document.getElementById('anim-step').addEventListener('click', () => {
 });
 
 document.getElementById('anim-quiz').addEventListener('click', () => {
-    openWriteMode();
+    clearWriteCanvas();
 });
 /* ── Keyboard: close modal on Escape, navigate with arrows ─ */
 document.addEventListener('keydown', e => {
-    if (document.getElementById('write-panel').classList.contains('open')) {
-        if (e.key === 'Escape') closeWriteMode();
-        return;
-    }
     const panel = document.getElementById('detail-panel');
     if (!panel.classList.contains('open')) return;
     if (e.key === 'Escape') closeDetail();
@@ -335,13 +352,12 @@ document.addEventListener('keydown', e => {
     const ctx = canvas.getContext('2d');
 
     function pos(e) {
-        const r = canvas.getBoundingClientRect();
-        return { x: e.clientX - r.left, y: e.clientY - r.top };
+        return { x: e.offsetX, y: e.offsetY };
     }
 
     function applyStyle() {
-        ctx.strokeStyle = '#1a1a2e';
-        ctx.lineWidth = Math.max(10, canvas.offsetWidth * 0.042);
+        ctx.strokeStyle = 'rgba(255, 180, 0, 0.90)';
+        ctx.lineWidth = Math.max(14, canvas.offsetWidth * 0.06);
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
     }
@@ -354,7 +370,7 @@ document.addEventListener('keydown', e => {
         applyStyle();
         ctx.beginPath();
         ctx.arc(p.x, p.y, ctx.lineWidth / 2, 0, Math.PI * 2);
-        ctx.fillStyle = '#1a1a2e';
+        ctx.fillStyle = 'rgba(255, 180, 0, 0.90)';
         ctx.fill();
     });
 
@@ -379,143 +395,17 @@ function clearWriteCanvas() {
     c.getContext('2d').clearRect(0, 0, c.offsetWidth, c.offsetHeight);
 }
 
-function computeWriteSize() {
-    const panel = document.getElementById('write-panel');
-    const header = document.querySelector('.write-header');
-    const controls = document.querySelector('.write-controls');
-    const gap = 14; // matches CSS gap
-    const padTop = 60; // space reserved for close button
-    const padBot = 20;
-    const padSides = 32; // 16px each side
-    const maxW = panel.offsetWidth - padSides;
-    const maxH = panel.offsetHeight - padTop - padBot
-        - header.offsetHeight - controls.offsetHeight
-        - gap * 2;
-    const size = Math.max(80, Math.min(maxW, maxH));
-    const wrap = document.getElementById('write-canvas-wrap');
-    wrap.style.width = size + 'px';
-    wrap.style.height = size + 'px';
-    document.querySelector('.write-controls').style.width = size + 'px';
-}
-
 function resizeWriteCanvas() {
     const c = document.getElementById('write-canvas');
-    const wrap = document.getElementById('write-canvas-wrap');
+    const container = document.getElementById('stroke-order-container');
     const dpr = window.devicePixelRatio || 1;
-    c.width = wrap.offsetWidth * dpr;
-    c.height = wrap.offsetHeight * dpr;
+    c.width = container.offsetWidth * dpr;
+    c.height = container.offsetHeight * dpr;
     c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
-function openWriteMode() {
-    state.writeList = KANJI;
-    state.writeIdx = state.detailIdx;
-    document.getElementById('write-panel').classList.add('open');
-    requestAnimationFrame(() => {
-        computeWriteSize();
-        resizeWriteCanvas();
-        renderWriteMode();
-    });
-}
-
-function closeWriteMode() {
-    document.getElementById('write-panel').classList.remove('open');
-    state.writeWriter = null;
-}
-
-function renderWriteMode() {
-    const k = state.writeList[state.writeIdx];
-    if (!k) return;
-    document.getElementById('write-kchar').textContent = k.kanji;
-    document.getElementById('write-prev').disabled = state.writeIdx === 0;
-    document.getElementById('write-next').disabled = state.writeIdx >= state.writeList.length - 1;
-    clearWriteCanvas();
-    initWriteGuide(k.kanji);
-}
-
-function initWriteGuide(kanji) {
-    const target = document.getElementById('write-hanzi-target');
-    target.innerHTML = '';
-    document.getElementById('write-stroke-numbers').innerHTML = '';
-    state.writeWriter = null;
-
-    const wrap = document.getElementById('write-canvas-wrap');
-    const size = wrap.offsetWidth;
-
-    // KanjiVG filenames are 5-digit lowercase hex (e.g. 日 → 065e5)
-    const cp = kanji.codePointAt(0).toString(16).padStart(5, '0');
-    const svgUrl = `https://cdn.jsdelivr.net/gh/KanjiVG/kanjivg@master/kanji/${cp}.svg`;
-
-    fetch(svgUrl)
-        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
-        .then(svgText => renderKanjiVGGuide(svgText, size))
-        .catch(() => {
-            target.innerHTML =
-                `<div style="display:flex;align-items:center;justify-content:center;` +
-                `height:100%;color:#aaa;font-size:.85rem;padding:16px;text-align:center;">` +
-                `Kanji guide unavailable<br>(needs internet)</div>`;
-        });
-}
-
-function renderKanjiVGGuide(svgText, size) {
-    const target = document.getElementById('write-hanzi-target');
-    const numSvg = document.getElementById('write-stroke-numbers');
-
-    const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
-
-    // ── Stroke path guide ──────────────────────────────────────
-    // KanjiVG viewBox is always 0 0 109 109
-    const strokeGroup = doc.querySelector('g[id^="kvg:StrokePaths"]');
-    const guideSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    guideSvg.setAttribute('viewBox', '0 0 109 109');
-    guideSvg.setAttribute('width', size);
-    guideSvg.setAttribute('height', size);
-    guideSvg.style.display = 'block';
-
-    if (strokeGroup) {
-        const g = strokeGroup.cloneNode(true);
-        g.setAttribute('style', 'fill:none;stroke:#2c3e50;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;');
-        guideSvg.appendChild(g);
-    }
-    target.appendChild(guideSvg);
-
-    // ── Stroke order numbers (kakijun) ─────────────────────────
-    // KanjiVG encodes number positions as matrix(1 0 0 1 tx ty) in the
-    // kvg:StrokeNumbers group – the same 109×109 coordinate space
-    const numGroup = doc.querySelector('g[id^="kvg:StrokeNumbers"]');
-    if (!numGroup) return;
-
-    const scale = size / 109;
-    const r = Math.max(7, size * 0.020);
-    const fs = Math.round(r * 0.82);
-
-    numSvg.setAttribute('viewBox', `0 0 ${size} ${size}`);
-    numSvg.innerHTML = Array.from(numGroup.querySelectorAll('text')).map(t => {
-        const m = (t.getAttribute('transform') || '')
-            .match(/matrix\(1 0 0 1 ([\d.]+) ([\d.]+)\)/);
-        if (!m) return '';
-        const cx = (parseFloat(m[1]) * scale).toFixed(1);
-        const cy = (parseFloat(m[2]) * scale).toFixed(1);
-        const n = t.textContent.trim();
-        return `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" ` +
-            `font-size="${fs}" font-weight="800" fill="#c0392b" ` +
-            `paint-order="stroke" stroke="white" stroke-width="3" stroke-linejoin="round" ` +
-            `font-family="'Segoe UI',Arial,sans-serif">${n}</text>`;
-    }).join('');
-}
-
-document.getElementById('write-close').addEventListener('click', closeWriteMode);
-document.getElementById('write-clear').addEventListener('click', clearWriteCanvas);
-document.getElementById('write-prev').addEventListener('click', () => {
-    if (state.writeIdx > 0) { state.writeIdx--; renderWriteMode(); }
-});
-document.getElementById('write-next').addEventListener('click', () => {
-    if (state.writeIdx < state.writeList.length - 1) { state.writeIdx++; renderWriteMode(); }
-});
-
 window.addEventListener('resize', () => {
-    if (!document.getElementById('write-panel').classList.contains('open')) return;
-    computeWriteSize();
+    if (!document.getElementById('detail-panel').classList.contains('open')) return;
     resizeWriteCanvas();
 });
 

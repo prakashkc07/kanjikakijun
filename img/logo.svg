@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+    <defs>
+        <!-- Deep navy-to-indigo background -->
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+            <stop offset="0%" stop-color="#0e0c2a" />
+            <stop offset="100%" stop-color="#2e1050" />
+        </linearGradient>
+
+        <!-- Gold gradient for main kanji -->
+        <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+            <stop offset="0%" stop-color="#ffe87c" />
+            <stop offset="45%" stop-color="#f5a623" />
+            <stop offset="100%" stop-color="#c07010" />
+        </linearGradient>
+
+        <!-- Warm gold for subtitle -->
+        <linearGradient id="goldSub" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+            <stop offset="0%" stop-color="#ffd966" />
+            <stop offset="100%" stop-color="#ff9f43" />
+        </linearGradient>
+
+        <!-- Radial soft glow inside circle -->
+        <radialGradient id="glow" cx="50%" cy="42%" r="52%">
+            <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.35" />
+            <stop offset="100%" stop-color="#0e0c2a" stop-opacity="0" />
+        </radialGradient>
+
+        <!-- Inner highlight at top -->
+        <radialGradient id="shine" cx="50%" cy="8%" r="50%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.12" />
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+        </radialGradient>
+
+        <!-- Soft glow filter for 漢 character -->
+        <filter id="charGlow" x="-25%" y="-25%" width="150%" height="150%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
+            <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+            </feMerge>
+        </filter>
+
+        <!-- Softer glow for rings -->
+        <filter id="ringGlow" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+            <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+            </feMerge>
+        </filter>
+
+        <!-- Clip to circle -->
+        <clipPath id="clip">
+            <circle cx="256" cy="256" r="256" />
+        </clipPath>
+    </defs>
+
+    <!-- ── Background ── -->
+    <circle cx="256" cy="256" r="256" fill="url(#bg)" />
+    <circle cx="256" cy="256" r="256" fill="url(#glow)" />
+    <circle cx="256" cy="256" r="256" fill="url(#shine)" />
+
+    <!-- ── Kanji practice grid (very subtle) ── -->
+    <g clip-path="url(#clip)" stroke="rgba(255,255,255,0.055)" stroke-width="1" fill="none">
+        <!-- Quarter grid lines -->
+        <line x1="256" y1="0" x2="256" y2="512" />
+        <line x1="0" y1="256" x2="512" y2="256" />
+        <line x1="128" y1="0" x2="128" y2="512" stroke-dasharray="4,6" />
+        <line x1="384" y1="0" x2="384" y2="512" stroke-dasharray="4,6" />
+        <line x1="0" y1="128" x2="512" y2="128" stroke-dasharray="4,6" />
+        <line x1="0" y1="384" x2="512" y2="384" stroke-dasharray="4,6" />
+        <!-- Diagonal guides -->
+        <line x1="30" y1="30" x2="482" y2="482" stroke-opacity="0.5" />
+        <line x1="482" y1="30" x2="30" y2="482" stroke-opacity="0.5" />
+    </g>
+
+    <!-- ── Outer decorative rings ── -->
+    <!-- Faint outer ring -->
+    <circle cx="256" cy="256" r="242" fill="none" stroke="rgba(255,215,80,0.18)" stroke-width="1.5"
+        filter="url(#ringGlow)" />
+    <!-- Main accent ring -->
+    <circle cx="256" cy="256" r="232" fill="none" stroke="rgba(255,185,30,0.38)" stroke-width="2.5"
+        stroke-dasharray="8,5" filter="url(#ringGlow)" />
+    <!-- Inner thin ring -->
+    <circle cx="256" cy="256" r="216" fill="none" stroke="rgba(255,215,80,0.14)" stroke-width="1" />
+
+    <!-- ── Cardinal dots on dash ring ── -->
+    <g fill="rgba(255,215,0,0.75)">
+        <circle cx="256" cy="24" r="4.5" />
+        <circle cx="256" cy="488" r="4.5" />
+        <circle cx="24" cy="256" r="4.5" />
+        <circle cx="488" cy="256" r="4.5" />
+        <!-- 45° corners (approx on r=232 ring) -->
+        <circle cx="92" cy="92" r="3" />
+        <circle cx="420" cy="92" r="3" />
+        <circle cx="92" cy="420" r="3" />
+        <circle cx="420" cy="420" r="3" />
+    </g>
+
+    <!-- ── Brush-stroke accent bar above kanji ── -->
+    <rect x="148" y="126" width="216" height="5" rx="3"
+        fill="rgba(255,185,30,0.22)" />
+
+    <!-- ── Main 漢 character ── -->
+    <text x="256" y="318"
+        font-family="'Yu Mincho', 'Hiragino Mincho Pro', 'Noto Serif JP', Georgia, serif"
+        font-size="286"
+        font-weight="900"
+        text-anchor="middle"
+        fill="url(#gold)"
+        filter="url(#charGlow)">漢</text>
+
+    <!-- ── Divider line ── -->
+    <line x1="170" y1="356" x2="342" y2="356" stroke="rgba(255,185,30,0.35)" stroke-width="1.5" />
+
+    <!-- ── Subtitle: 練習 ── -->
+    <text x="256" y="400"
+        font-family="'Yu Mincho', 'Hiragino Mincho Pro', 'Noto Serif JP', Georgia, serif"
+        font-size="44"
+        font-weight="700"
+        text-anchor="middle"
+        letter-spacing="18"
+        fill="url(#goldSub)"
+        opacity="0.9">練習</text>
+
+    <!-- ── Small furigana below ── -->
+    <text x="256" y="432"
+        font-family="'Yu Mincho', 'Hiragino Mincho Pro', 'Noto Serif JP', sans-serif"
+        font-size="18"
+        font-weight="400"
+        text-anchor="middle"
+        letter-spacing="4"
+        fill="rgba(255,220,130,0.55)">れんしゅう</text>
+
+    <!-- ── Bottom accent dots ── -->
+    <g fill="rgba(255,185,30,0.4)">
+        <circle cx="214" cy="456" r="2.5" />
+        <circle cx="256" cy="456" r="2.5" />
+        <circle cx="298" cy="456" r="2.5" />
+    </g>
+</svg>

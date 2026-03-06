@@ -1,28 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>漢字</title>
+    <title>漢字練習</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Shippori+Mincho:wght@700;800&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="css/style.css?v=2" />
+    <link rel="icon" href="img/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/style.css" />
 </head>
 
 <body>
 
     <!-- Header -->
     <header>
-        <span class="logo-kanji">漢</span>
-        <h1>漢字</h1>
+        <img src="img/logo.svg" alt="漢字練習 logo" class="header-logo-img" />
+        <div class="header-titles">
+            <h1 class="header-main">漢字練習</h1>
+            <p class="header-sub">かんじ れんしゅう</p>
+        </div>
     </header>
 
     <!-- Kanji Grid -->
     <main>
+        <div id="search-bar">
+            <span id="search-icon">🔍</span>
+            <input id="search-input" type="search" placeholder="けんさく…" autocomplete="off" />
+            <span id="search-count"></span>
+        </div>
         <div id="kanji-grid"></div>
     </main>
 
@@ -35,12 +44,13 @@
                 <div id="stroke-order-container">
                     <div id="hanzi-target"></div>
                     <svg id="detail-stroke-numbers" xmlns="http://www.w3.org/2000/svg"></svg>
+                    <canvas id="write-canvas"></canvas>
                 </div>
                 <div class="stroke-controls">
                     <button id="anim-play">▶</button>
                     <button id="anim-step">→</button>
                     <button id="anim-reset">↺</button>
-                    <button id="anim-quiz">✍️</button>
+                    <button id="anim-quiz">🗑️</button>
                 </div>
                 <div class="stroke-info" id="stroke-info">Loading…</div>
                 <div class="stroke-step-row" id="stroke-step-row"></div>
@@ -65,27 +75,9 @@
             </div>
 
             <div class="detail-actions">
-                <button id="detail-prev">←</button>
-                <button id="detail-next">→</button>
+                <button id="detail-prev">◀ 前</button>
+                <button id="detail-next">次 ▶</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Write Panel -->
-    <div id="write-panel">
-        <button class="write-btn-close" id="write-close" aria-label="Close">✕</button>
-        <div class="write-header">
-            <span class="write-kchar" id="write-kchar"></span>
-        </div>
-        <div class="write-canvas-wrap" id="write-canvas-wrap">
-            <div id="write-hanzi-target"></div>
-            <svg id="write-stroke-numbers" xmlns="http://www.w3.org/2000/svg"></svg>
-            <canvas id="write-canvas"></canvas>
-        </div>
-        <div class="write-controls">
-            <button class="write-ctrl-btn" id="write-prev">←</button>
-            <button class="write-ctrl-btn write-clear-btn" id="write-clear">✕</button>
-            <button class="write-ctrl-btn" id="write-next">→</button>
         </div>
     </div>
 
@@ -97,8 +89,8 @@
         <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener" style="color:#bbb;">CC BY-SA 3.0</a>
     </footer>
 
-    <script src="js/data.js?v=2"></script>
-    <script src="js/app.js?v=2"></script>
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
 </body>
 
 </html>
